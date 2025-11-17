@@ -3,7 +3,7 @@
 # VERIFICA QUANTIDADE DE PARAMETROS
 if [ $# -ne 10 ]; then
     echo "Sintaxe errada!"
-    echo "Utilize -l <linguagem> -a <algoritmo> -n <execuções> -t <tamanho|al> -c <caso>"
+    echo "Utilize -l <linguagem> -a <algoritmo> -n <execuções> -t <tamanho> -c <caso>"
     exit
 fi
 
@@ -15,14 +15,12 @@ TAMANHO=$8
 CASO=${10}
 
 #TAMANHOS POSSÍVEIS CASO -t: al
-TAMANHOS_ALEATORIOS=(10 100 1000 10000 100000)
+TAM_AL=(10 100 1000 10000 100000)
 
 #LOG DE SAÍDA
-ARQUIVO="resultados_${LINGUAGEM}_${ALGORITIMO}_${CASO}.csv"
+LOG="log_${ALGORITIMO}_${LINGUAGEM}_${TAMANHO}_${CASO}.csv"
 
 #CSV COM CABEÇALHO
-echo "Execucao,Tamanho,TempoPrograma,TempoExecucao" > "$ARQUIVO"
-
 case $LINGUAGEM in
     c)
         case $ALGORITIMO in
@@ -45,20 +43,19 @@ esac
 for (( LOOP=0; LOOP < EXECUCOES; LOOP++ )); do
 
     if [ "$TAMANHO" == "al" ]; then
-        TAM_ESCOLHIDO=${TAMANHOS_ALEATORIOS[$RANDOM % 5]}
-        echo "Execução $((LOOP+1)): tamanho aleatório escolhido = $TAM_ESCOLHIDO"
+        TAM=${TAM_AL[$RANDOM % 5]}
+        echo "Execução $((LOOP+1)): configuração de entrada escolhida aleatóriamente = $TAM"
     else
-        TAM_ESCOLHIDO=$TAMANHO
+        TAM=$TAMANHO
     fi
 
-    INICIO=$(date +%s%N)
-    RESULTADO=$($PROGRAMA $TAM_ESCOLHIDO $CASO)
-    FIM=$(date +%s%N)
-    TEMPO_EXEC=$(echo "scale=6; ($FIM - $INICIO)/1000000000" | bc)
+    #TENTATIVA DE FILTRAR A IMPRESSÃO DO ALGORITMO DE ORDENAÇÃO PARA PEGAR TEMPO
+    #RESULTADO=$($PROGRAMA $TAM $CASO | awk -F';' '{print $2}')
+	RESULTADO=$($PROGRAMA $TAM $CASO)
 
-    echo "$((LOOP+1)),$TAM_ESCOLHIDO,$RESULTADO,$TEMPO_EXEC" >> "$ARQUIVO"
+    echo "$((LOOP+1)),$TAM,$RESULTADO" >> "$LOG"
 
 done
 
-echo "Resultados salvos em: $ARQUIVO"
+echo "Log salvo em: $LOG"
 exit
