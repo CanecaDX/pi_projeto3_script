@@ -1,4 +1,3 @@
-set title "Exemplo de Linhas - Arquivo de Dados"
 set xlabel "Eixo X"
 set ylabel "Eixo Y"
 
