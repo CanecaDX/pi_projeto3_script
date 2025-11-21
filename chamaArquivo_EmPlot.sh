@@ -61,5 +61,9 @@ done
 
 echo "Resultados salvos em: $ARQUIVO"
 
+# CHAMAR GNUPLOT PASSANDO O ARQUIVO CSV
+gnuplot -e "ARQUIVO='$ARQUIVO'" ./plotCSV.plt
+
+
 exit
 
