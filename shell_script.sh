@@ -1,61 +1,74 @@
 #!/bin/bash
-
 # VERIFICA QUANTIDADE DE PARAMETROS
-if [ $# -ne 10 ]; then
-    echo "Sintaxe errada!"
-    echo "Utilize -l <linguagem> -a <algoritmo> -n <execuções> -t <tamanho> -c <caso>"
-    exit
+if [ $# -ne 4 ]; then
+	echo "Sintaxe errada!"
+	echo "Utilize -l <linguagem> -a <algoritmo>"
+	exit
 fi
 
 # PARAMETROS
 LINGUAGEM=$2
-ALGORITIMO=$4
-EXECUCOES=$6
-TAMANHO=$8
-CASO=${10}
+ALGORITMO=$4
+CASO=3
+EXECUCOES=10
 
-#TAMANHOS POSSÍVEIS CASO -t: al
-TAM_AL=(10 100 1000 10000 100000)
+# ARQUIVOS
+LOG_BRUTO="log_${ALGORITMO}_${LINGUAGEM}.csv"
+echo "N_Execucao;Tamanho;Tempo" > "$LOG_BRUTO"
 
-#LOG DE SAÍDA
-LOG="log_${ALGORITIMO}_${LINGUAGEM}_${TAMANHO}_${CASO}.csv"
+LOG_FLT="LogFLT_${ALGORITMO}_${LINGUAGEM}.csv"
+echo "Tamanho;Tempo" > "$LOG_FLT"
 
-#CSV COM CABEÇALHO
+# VERIFICA ALGORITMO
+if [ "$ALGORITMO" != "mergesort" -a "$ALGORITMO" != "bubblesort" ]; then
+	echo "Sintaxe de algoritmo errada!"
+	echo "Utilize 'mergesort' ou 'bubblesort'"
+	exit
+fi
+
+# VERIFICA LINGUAGEM E DEFINE COMANDO
 case $LINGUAGEM in
-    c)
-        case $ALGORITIMO in
-            bubblesort) PROGRAMA="./bubblesort-casos_c" ;;
-            mergesort)  PROGRAMA="./mergesort-casos_c" ;;
-            *) echo "Algoritmo inválido!"; exit ;;
-        esac ;;
-    
-    python)
-        case $ALGORITIMO in
-            bubblesort) PROGRAMA="python3 bubblesort-casos.py" ;;
-            mergesort)  PROGRAMA="python3 mergesort-casos.py" ;;
-            *) echo "Algoritmo inválido!"; exit ;;
-        esac ;;
-    
-    *)
-        echo "Linguagem inválida!"; exit ;;
+	c)
+		PROGRAMA="./${ALGORITMO}-casos_${LINGUAGEM}";;
+	python)
+		PROGRAMA="python3 ${ALGORITMO}-casos.py";;		
+	*)
+	echo "Sintaxe de linguagem errada!"
+	echo "Utilize 'c' ou 'python'"
+	exit;;
 esac
 
-for (( LOOP=0; LOOP < EXECUCOES; LOOP++ )); do
+# EXECUTA ARQUIVO DE ORDENACAO
+for ENTRADA in 1 2 3 4 5
+do
+	TAMANHO=$(( 10 ** $ENTRADA ))
+	
+	for (( LOOP=0; LOOP < $EXECUCOES; LOOP++ )); do
+		RESULTADO=$($PROGRAMA $TAMANHO $CASO)
+		echo "$((LOOP+1));$TAMANHO;$RESULTADO" >> "$LOG_BRUTO"
+	done
+done
+echo "Dados brutos salvos em: $LOG_BRUTO"
 
-    if [ "$TAMANHO" == "al" ]; then
-        TAM=${TAM_AL[$RANDOM % 5]}
-        echo "Execução $((LOOP+1)): configuração de entrada escolhida aleatóriamente = $TAM"
-    else
-        TAM=$TAMANHO
+# CALCULO DAS MÉDIAS
+# Lemos o arquivo bruto para gerar o filtrado
+TAMANHOS_TESTADOS=$(cut -d ';' -f2 "$LOG_BRUTO" | tail -n +2 | sort -n | uniq)
+
+for T in $TAMANHOS_TESTADOS; do
+    TEMPOS=$(grep ";$T;" "$LOG_BRUTO" | cut -d ';' -f3)
+    
+    SOMA=0
+    CONTA=0
+    for TEMPO in $TEMPOS; do
+        SOMA=$(echo "$SOMA + $TEMPO" | bc)
+        CONTA=$((CONTA + 1))
+    done
+
+    if [ $CONTA -gt 0 ]; then
+        MEDIA=$(echo "scale=7; $SOMA/$CONTA" | bc | awk '{printf "%.7f", $0}')
+        echo "$T;$MEDIA" >> "$LOG_FLT"
     fi
-
-    #TENTATIVA DE FILTRAR A IMPRESSÃO DO ALGORITMO DE ORDENAÇÃO PARA PEGAR TEMPO
-    #RESULTADO=$($PROGRAMA $TAM $CASO | awk -F';' '{print $2}')
-	RESULTADO=$($PROGRAMA $TAM $CASO)
-
-    echo "$((LOOP+1)),$TAM,$RESULTADO" >> "$LOG"
-
 done
 
-echo "Log salvo em: $LOG"
+echo "  -> Médias salvas em: $LOG_FLT"
 exit
