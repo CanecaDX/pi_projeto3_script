@@ -14,7 +14,6 @@ set key top left box opaque shadow
 set datafile separator ";"
 
 # Escala Logarítmica 
-# Se quiser linear, comente as duas linhas abaixo com #
 set logscale x 10
 set logscale y 10
 set format x "10^{%L}"
@@ -32,7 +31,6 @@ set style line 3 lw 3 lc rgb "#4363d8" pt 9 ps 1.5 # Azul (Bubble C)
 set style line 4 lw 3 lc rgb "#42d4f4" pt 9 ps 1.5 # Ciano (Bubble Py)
 
 # Plotagem dos 4 arquivos simultaneamente
-# Como usamos logscale, se houver tempo 0, o gnuplot pode reclamar, mas plota o resto.
 plot \
     'LogFLT_mergesort_c.csv'      using 1:2 with linespoints ls 1 title "Mergesort (C)", \
     'LogFLT_mergesort_python.csv' using 1:2 with linespoints ls 2 title "Mergesort (Python)", \
