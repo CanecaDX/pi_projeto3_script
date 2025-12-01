@@ -39,7 +39,7 @@ case $LINGUAGEM in
 esac
 
 # EXECUTA ARQUIVO DE ORDENACAO
-for ENTRADA in 1 2 3
+for ENTRADA in 1 2 3 4 5
 do
 	TAMANHO=$(( 10 ** $ENTRADA ))
 	
